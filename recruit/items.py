@@ -13,5 +13,7 @@ class PositionItem(scrapy.Item):
     position_title = scrapy.Field()
     # 新闻URL
     position_link = scrapy.Field()
+    # 新闻内容
+    context_list = scrapy.Field()
 class NewContext(scrapy.Item):
     content = scrapy.Field()

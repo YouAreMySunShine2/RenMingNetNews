@@ -7,24 +7,31 @@ class PositionSpider(scrapy.Spider):
     allowed_domains = ['www.people.com.cn']
     start_urls = ["http://www.people.com.cn/"]
     def parse(self, response):
-        position_lists = response.xpath('//div[@class="box fl ml35 news_center"]')
-        for postion in position_lists:
-            position_title = position_lists.xpath('./ul[@class="list14 top"]/li/a/text()').extract()
-            position_link = position_lists.xpath('./ul[@class="list14 top"]/li/a/@href').extract()
-            index = 0;
-            for link in position_link:
-               item = PositionItem()
-               item["position_title"] = position_title[index]
-               index=index+1
-               item["position_link"] = link
-               yield item
-               yield scrapy.Request(link, dont_filter=True, callback=self.next_parse)
-    def next_parse(self, response):
+        position_lists = response.xpath('//div[@class="box fl ml35 news_center"]/ul/li')
+        for position in position_lists:
+            item = PositionItem()
+            text_list = position.xpath('*/a/text()').extract()
+            if len(text_list) == 0:
+                text_list = position.xpath('./a/text()').extract()
+            if len(text_list) > 0:
+                item["position_title"] = text_list[0]
+            link_list = position.xpath('*/a/@href').extract()
+            if len(link_list) == 0:
+                link_list = position.xpath('a/@href').extract()
+            if len(link_list) > 0:
+                item["position_link"] = link_list[0].strip('\n')
+            #yield item
+            if len(link_list) > 0:
+                request = scrapy.Request(link_list[0].strip('\n'), dont_filter=True, callback=self.next_parse)
+                request.meta['item']=item
+                yield request
+    @staticmethod
+    def next_parse(response):
        item_list = response.xpath('//*[@id="rwb_zw"]')
        for item in item_list:
-           book = NewContext()
-           book['content'] = item.xpath('./p').extract()
-           yield book
+           position_item = response.meta['item']
+           position_item['context_list'] = item.xpath('./p').extract()
+           yield position_item
        
        
       
