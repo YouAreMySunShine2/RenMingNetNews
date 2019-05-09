@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from recruit.items import PositionItem,NewContext
+from recruit.items import PositionItem
  
 class PositionSpider(scrapy.Spider):
     name = 'Position'
@@ -22,7 +22,7 @@ class PositionSpider(scrapy.Spider):
                 item["position_link"] = link_list[0].strip('\n')
             #yield item
             if len(link_list) > 0:
-                request = scrapy.Request(link_list[0].strip('\n'), dont_filter=True, callback=self.next_parse)
+                request = scrapy.Request(link_list[0].strip('\n').strip(), dont_filter=True, callback=self.next_parse)
                 request.meta['item']=item
                 yield request
     @staticmethod
